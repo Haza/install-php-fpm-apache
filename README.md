@@ -436,5 +436,3 @@ Launch all you php-fpm and Apache
 Now, if you go on http://<IP>/index.php, you should see  "PHP Version 5.3.27"
 
 Et voilà !
-
-Prochaine étape, la connexion avec MySQL et les quelques extensions indispensables manquantes à l'heure actuelle !
