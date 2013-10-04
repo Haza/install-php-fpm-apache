@@ -1,0 +1,486 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Install php-fpm and apache by Haza</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/Haza/install-php-fpm-apache">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/Haza/install-php-fpm-apache/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/Haza/install-php-fpm-apache/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Install php-fpm and apache</h1>
+          <p></p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/Haza">Haza</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <p>Le but de cette étape est d'avoir un environnement permettant l'utilisation de plusieurs versions de PHP en  parallèle (le tout avec Apache).
+The goal here is to be able to run Apache/PHP with multiple PHP installed on the machine, letting you a way to choose which version you want to run.</p>
+
+<p>To be do that, we need to compile our own PHP.</p>
+
+<p>First, be sure to grab all the dependencies</p>
+
+<pre><code>apt-get install build-essential libxml2-dev autoconf2.13 libpng12-* zlib1g gawk bison flex ^libxml2-* mcrypt libmcrypt-dev perl libcurl4-gnutls-dev libicu-dev libxslt1-dev
+</code></pre>
+
+<p>We also need the JPEG lib</p>
+
+<pre><code>apt-get install libjpeg62-dev
+</code></pre>
+
+<p>And the OpenSSL lib.</p>
+
+<pre><code>apt-get install libcurl4-openssl-dev
+</code></pre>
+
+<p>Then, we need  Apache and <a href="http://httpd.apache.org/docs/2.2/mod/worker.html">Apache MPM Worker</a></p>
+
+<pre><code>apt-get install apache2 apache2-mpm-worker
+</code></pre>
+
+<p>We also need Apache's mod_fastcgi
+If you try to run</p>
+
+<pre><code>apt-get install libapache2-mod-fastcgi
+</code></pre>
+
+<p>You'll get an error</p>
+
+<pre><code>E: Package 'libapache2-mod-fastcgi' has no installation candidate
+</code></pre>
+
+<p>This is perfectly normal since the fastcgi package is in the "non-free" repository of debian.</p>
+
+<p>We need to add those one</p>
+
+<pre><code>vim /etc/apt/sources.list
+</code></pre>
+
+<p>Add those 2 lines : </p>
+
+<pre><code>deb http://ftp.fr.debian.org/debian/ wheezy non-free
+deb-src http://ftp.fr.debian.org/debian/ wheezy non-free
+</code></pre>
+
+<p>Save, quit</p>
+
+<p>Don't forget to update !</p>
+
+<pre><code>apt-get update
+</code></pre>
+
+<p>Now, you can try again : </p>
+
+<pre><code>apt-get install libapache2-mod-fastcgi
+</code></pre>
+
+<p>Then you'll need also those libs</p>
+
+<pre><code>apt-get install libreadline-dev libfreetype6-dev
+</code></pre>
+
+<p>It should now be good for Apache, at least for now.</p>
+
+<p>Next, PHP !
+As said before, we'll need to compile our PHP.
+So, grab the sources : <a href="http://php.net/downloads.php">http://php.net/downloads.php</a>
+We'll start with version 5.5 (5.5.4 right now)</p>
+
+<pre><code>cd /opt
+mkdir src
+cd src
+wget http://fr2.php.net/get/php-5.5.4.tar.gz/from/this/mirror
+mv mirror php-5.5.4.tar.gz
+tar xvfz mirror php-5.5.4.tar.gz 
+cd php-5.5.4
+</code></pre>
+
+<p>Next, configure ! </p>
+
+<pre><code>./configure \
+--prefix=/opt/php5.5.4 \
+--with-readline \
+--enable-cli \
+--with-mysql=mysqlnd \
+--with-mysqli=mysqlnd \
+--with-pdo-mysql=mysqlnd \
+--with-gd \
+--with-freetype-dir \
+--with-jpeg-dir \
+--with-png-dir \
+--with-zlib-dir \
+--enable-gd-native-ttf \
+--with-curl \
+--enable-bcmath \
+--enable-mbstring \
+--enable-exif \
+--enable-pcntl \
+--enable-soap \
+--with-xsl \
+--enable-zip \
+--with-config-file-path=/opt/php5.5.4/conf \
+--with-config-file-scan-dir=/opt/php5.5.4/conf.d \
+--with-iconv-dir=/opt/local \
+--enable-fpm \
+--with-fpm-user=www-data \
+--with-fpm-group=www-data
+</code></pre>
+
+<p>You need to be carfeful with the paths (/opt/php5.5.4/xxx) right here. It is used to be able to say PHP when it should be installed and where the configuration files are looked for.</p>
+
+<p>(here, you can grab a little coffee)</p>
+
+<p>Then, the make ! </p>
+
+<pre><code>make
+</code></pre>
+
+<p>(Here, you can grab a big coffee)</p>
+
+<p>Then, install it ! </p>
+
+<pre><code>make install
+</code></pre>
+
+<p>Just check that everything is there. Just go :</p>
+
+<pre><code>cd /opt/php5.5.4/
+</code></pre>
+
+<p>You should find : </p>
+
+<pre><code>ls /opt/php5.5.4
+bin  etc  include  lib     php  sbin  var
+</code></pre>
+
+<p>Now, we need to make some changes in the php-fpm configuration file.</p>
+
+<p>Thankfully, PHP have an example file we could use :</p>
+
+<pre><code>cp /opt/php5.5.4//etc/php-fpm.conf.default /opt/php5.5.4/etc/php-fpm.conf
+</code></pre>
+
+<p>Edit this file : </p>
+
+<pre><code>vim /opt/php5.5.4/etc/php-fpm.conf  
+</code></pre>
+
+<p>Here are the changes you need to do : 
+In [global], uncomment</p>
+
+<pre><code>pid = run/php-fpm.pid
+</code></pre>
+
+<p>And in the "Pool Definitions", you'll find the line : </p>
+
+<pre><code>listen = 127.0.0.1:9000
+</code></pre>
+
+<p>Change this one to : </p>
+
+<pre><code>listen = /var/run/php-fpm-5.5.4.sock
+</code></pre>
+
+<p>This will allow us not to "plug" PHP to an IP:PORT, but to an unix socket.
+Save and quit.</p>
+
+<p>We'll also need a basic php.ini file. Once again, PHP have one (in the souces) : </p>
+
+<pre><code>cd /opt/php5.5.4
+mkdir conf
+cp /opt/src/php-5.5.4/php.ini-development /opt/php5.5.4/conf/ 
+</code></pre>
+
+<p>We'll also need a startup script.</p>
+
+<pre><code>cp /opt/src/php-5.5.4/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm5.5.4
+</code></pre>
+
+<p>Be sure the script is executable</p>
+
+<pre><code>chmod +x  /etc/init.d/php-fpm5.5.4
+</code></pre>
+
+<p>Next, we'll go back to Apache configuration</p>
+
+<p>Be sure that the "actions" and "fastcgi" extensions are enable</p>
+
+<pre><code>a2enmod actions fastcgi 
+</code></pre>
+
+<p>Now, we need to change the mod_fastcgi configuration to fits our needs</p>
+
+<pre><code>cd /etc/apache2/mods-enabled/
+vim fastcgi.conf
+</code></pre>
+
+<p>This file needs to be changes to that : </p>
+
+<pre><code>&lt;IfModule mod_fastcgi.c&gt;
+ AddHandler fastcgi-script .fcgi
+ FastCgiIpcDir /var/lib/apache2/fastcgi
+ FastCgiConfig -autoUpdate -singleThreshold 100 -killInterval 300 -maxProcesses 10 -maxClassProcesses 1
+ AddHandler php5-fcgi .php
+ AddType application/x-httpd-php .php
+ ScriptAlias /fastcgi/ /var/www/fastcgi/
+
+ &lt;Directory "/var/www/fastcgi"&gt;
+   Options +ExecCGI
+   SetHandler fastcgi-script
+   Order Deny,Allow
+   Allow from env=REDIRECT_STATUS
+ &lt;/Directory&gt;
+ &lt;Location "/fastcgi/php5.fpm"&gt;
+
+     Order Deny,Allow
+     Deny from all
+     Allow from env=REDIRECT_STATUS
+ &lt;/Location&gt;
+ FastCgiExternalServer /var/www/fastcgi/php5.fpm -socket /var/run/php-fpm-5.5.4.sock
+ Action php5-fcgi /fastcgi/php5.fpm
+
+&lt;/IfModule&gt;
+</code></pre>
+
+<p>The important part here is <code>FastCgiExternalServer /var/www/fastcgi/php5.fpm -socket /var/run/php-fpm-5.5.4.sock</code>
+The last part (<code>-socket /var/run/php-fpm-5.5.4.sock</code>) is the same that we have changed before in the "/opt/php5.5.4/etc/php-fpm.conf" file.</p>
+
+<p>About the <code>/var/www/fastcgi/php5.fpm&lt;</code>, the directory "fastcgi" needs to exist. It can be empty, but it really need to exist. So, let's create it :</p>
+
+<pre><code>mkdir /var/www/fastcgi/
+</code></pre>
+
+<p>Et voilà, let's test it now ! </p>
+
+<p>Add a php file in /var/www</p>
+
+<pre><code>vim /var/www/index.php
+</code></pre>
+
+<p>With just a simple phpinfo() in it</p>
+
+<pre><code>&lt;?php phpinfo();
+</code></pre>
+
+<p>Start Apache and php-fpm</p>
+
+<pre><code>/etc/init.d/apache2 restart
+/etc/init.d/php-fpm5.5.4 restart  
+</code></pre>
+
+<p>Now, with your broswer, go check that everything works.</p>
+
+<p>http:///index.php
+You should see "PHP Version 5.5.4"</p>
+
+<p>We now have our Apache/PHP working. But what about adding a PHP 5.3 now ?</p>
+
+<p>Compile it !</p>
+
+<pre><code>cd /opt/src/
+wget http://fr2.php.net/get/php-5.3.27.tar.gz/from/this/mirror
+mv mirror php-5.3.27.tar.gz
+tar xvfz php-5.3.27.tar.gz 
+cd php-5.3.27
+</code></pre>
+
+<p>Don't forget to change the paths </p>
+
+<pre><code>./configure \
+--prefix=/opt/php5.3.27 \
+--with-readline \
+--enable-cli \
+--with-mysql=mysqlnd \
+--with-mysqli=mysqlnd \
+--with-pdo-mysql=mysqlnd \
+--with-gd \
+--with-freetype-dir \
+--with-jpeg-dir \
+--with-png-dir \
+--with-zlib-dir \
+--enable-gd-native-ttf \
+--with-curl \
+--enable-bcmath \
+--enable-mbstring \
+--enable-exif \
+--enable-pcntl \
+--enable-soap \
+--with-xsl \
+--enable-zip \
+--with-config-file-path=/opt/php5.3.27/conf \
+--with-config-file-scan-dir=/opt/php5.3.27/conf.d \
+--with-iconv-dir=/opt/local \
+--enable-fpm \
+--with-fpm-user=www-data \
+--with-fpm-group=www-data
+</code></pre>
+
+<pre><code>make
+</code></pre>
+
+<p>(coffee)</p>
+
+<pre><code>make install
+</code></pre>
+
+<pre><code>cd /opt/php5.3.27/
+cp /opt/php5.3.27/etc/php-fpm.conf.default /opt/php5.3.27/etc/php-fpm.conf
+vim /opt/php5.3.27/etc/php-fpm.conf
+</code></pre>
+
+<p>As before, change the values : </p>
+
+<pre><code>pid = run/php-fpm.pid
+</code></pre>
+
+<p>And of course, change the socket (use an other one)</p>
+
+<pre><code> listen = /var/run/php-fpm-5.3.27.sock
+</code></pre>
+
+<p>php.ini and startup script : </p>
+
+<pre><code>cd /opt/php5.3.27
+mkdir conf
+cp /opt/src/php-5.3.27/php.ini-development /opt/php5.3.27/conf/ 
+cp /opt/src/php-5.3.27/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm5.3.27
+chmod +x  /etc/init.d/php-fpm5.3.27
+</code></pre>
+
+<p>We also need to make an other change in the fastcgi.conf file : </p>
+
+<pre><code>vim /etc/apache2/mods-enabled/fastcgi.conf
+</code></pre>
+
+<p>See the line</p>
+
+<pre><code>FastCgiExternalServer /var/www/fastcgi/php5.fpm -socket /var/run/php-fpm-5.5.4.sock
+</code></pre>
+
+<p>Add an other one, just below</p>
+
+<pre><code>FastCgiExternalServer /var/www/fastcgi/php5.3.fpm -socket /var/run/php-fpm-5.3.27.sock 
+</code></pre>
+
+<p>We should have : </p>
+
+<pre><code>&lt;IfModule mod_fastcgi.c&gt;
+ AddHandler fastcgi-script .fcgi
+ FastCgiIpcDir /var/lib/apache2/fastcgi
+ FastCgiConfig -autoUpdate -singleThreshold 100 -killInterval 300 -maxProcesses 10 -maxClassProcesses 1
+ AddHandler php5-fcgi .php
+ AddType application/x-httpd-php .php
+ ScriptAlias /fastcgi/ /var/www/fastcgi/
+
+ &lt;Directory "/var/www/fastcgi"&gt;
+   Options +ExecCGI
+   SetHandler fastcgi-script
+   Order Deny,Allow
+   Allow from env=REDIRECT_STATUS
+ &lt;/Directory&gt;
+ &lt;Location "/fastcgi/php5.fpm"&gt;
+
+     Order Deny,Allow
+     Deny from all
+     Allow from env=REDIRECT_STATUS
+ &lt;/Location&gt;
+ FastCgiExternalServer /var/www/fastcgi/php5.fpm -socket /var/run/php-fpm-5.5.4.sock
+ FastCgiExternalServer /var/www/fastcgi/php5.3.fpm -socket /var/run/php-fpm-5.3.27.sock
+ Action php5-fcgi /fastcgi/php5.fpm
+&lt;/IfModule&gt;
+</code></pre>
+
+<p>That it !
+How to choose which PHP version you want to use ?
+Easy, just go in your Apache Virtualhost, and change the "Action php5-fcgi /fastcgi/php5.fpm" to the right fastcgi server.
+Example with the basic virtualhost</p>
+
+<pre><code>  vim /etc/apache2/sites-enabled/000-default
+</code></pre>
+
+<p>Before , add </p>
+
+<pre><code>Action php5-fcgi /fastcgi/php5.3.fpm
+</code></pre>
+
+<p>So we have : </p>
+
+<pre><code>&lt;VirtualHost *:80&gt;
+        ServerAdmin webmaster@localhost
+
+        DocumentRoot /var/www
+        &lt;Directory /&gt;
+                Options FollowSymLinks
+                AllowOverride None
+        &lt;/Directory&gt;
+        &lt;Directory /var/www/&gt;
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        &lt;/Directory&gt;
+
+        ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+        &lt;Directory "/usr/lib/cgi-bin"&gt;
+                AllowOverride None
+                Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+                Order allow,deny
+                Allow from all
+        &lt;/Directory&gt;
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+        Action php5-fcgi /fastcgi/php5.3.fpm
+
+&lt;/VirtualHost&gt;
+</code></pre>
+
+<p>Save and quit.</p>
+
+<p>Launch all you php-fpm and Apache</p>
+
+<pre><code>/etc/init.d/php-fpm5.5.4 restart 
+/etc/init.d/php-fpm5.3.27 restart 
+/etc/init.d/apache2 restart 
+</code></pre>
+
+<p>Now, if you go on http:///index.php, you should see  "PHP Version 5.3.27"</p>
+
+<p>Et voilà !</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
