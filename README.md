@@ -1,7 +1,8 @@
 Le but de cette étape est d'avoir un environnement permettant l'utilisation de plusieurs versions de PHP en  parallèle (le tout avec Apache).
+
 The goal here is to be able to run Apache/PHP with multiple PHP installed on the machine, letting you a way to choose which version you want to run.
 
-To be do that, we need to compile our own PHP.
+To do that, we need to compile our own PHP.
 
 First, be sure to grab all the dependencies
 ```
